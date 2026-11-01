@@ -5,6 +5,14 @@ export interface CapturedFieldOption {
   text: string;
 }
 
+/**
+ * How a <select> is filled from a returned value.
+ * "text": exact option value or text. "code": match the leading code of "92004 - Comprehensive Exam - New".
+ * "search": options only exist after typing in a live-search box (diagnosis codes); the code is typed and the result clicked.
+ * "pointer": a procedure row's diagnosis list; values are the letters (A, B, ...) of the diagnoses entered above.
+ */
+export type FieldDriver = 'text' | 'code' | 'search' | 'pointer';
+
 export interface CapturedField {
   /** Stable-ish key derived from the field's label, used by the API to key its response. */
   key: string;
@@ -18,6 +26,10 @@ export interface CapturedField {
   currentValue: string;
   /** Present only for <select> fields. */
   options?: CapturedFieldOption[];
+  /** Set for fields bound from the form config; defaults to "text" matching. */
+  driver?: FieldDriver;
+  /** Most options a multi-select may hold (e.g. "Select up to 4"). */
+  maxSelections?: number;
 }
 
 export interface CapturedSchema {

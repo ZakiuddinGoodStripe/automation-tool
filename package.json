@@ -13,7 +13,8 @@
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
     "test": "vitest run",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "mock-api": "node scripts/mock-hospital.mjs"
   },
   "dependencies": {
     "react": "^19.2.4",

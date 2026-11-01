@@ -80,6 +80,43 @@ writes them back into the DOM using each field's already-captured `selector`
 — no new selector logic needed, since capture already proved those selectors
 resolve on the live page).
 
+### Update: binding by selector, drivers, and dependent fields
+
+The Edit Exam page turned out to expose stable ids (`#provider`, `#chkDiabetes`) and
+row hooks (`tr[data-row-type="exam|fitting|procedure|pqrs"]`, cells `.cptCodes`,
+`.modifierCodes`). So `FieldSpec` may bind by `selector` (preferred) or `label`.
+Selector-bound specs also reach fields capture skips, such as the row dependents,
+which start disabled.
+
+- **Order is part of the contract.** The page enables a row's modifiers only after its
+  procedure code is set. Specs are bound, requested and written in config order, and the
+  fill waits (up to 3 s) for a disabled field to enable, else reports `notReady`.
+- **`driver: 'code'`** matches select options by their leading code
+  (`92310` matches `92310 - CL Fit New`, never `92310.1 - ...`). The backend sends plain
+  CPT and modifier codes; Eyefinity's internal option ids never leave the page. A code
+  matching zero or several options is refused, not guessed.
+- **Knockout-bound page.** Checkboxes are clicked (Knockout's `checked` binding listens
+  for click). Selects get the native value plus `input`/`change`. bootstrap-select does not
+  redraw on its own, so a MAIN-world script (`entrypoints/page-bridge.content.ts`) calls
+  `selectpicker('refresh')` when asked. This bridge and the click/change behavior are
+  unverified on the live page.
+- **`driver: 'search'`** fills the diagnosis boxes A-L, whose options exist only after typing
+  (min. 3 characters). It acts like a person: open the box, type the ICD-10 code, wait for the
+  results, click the one whose text carries that exact code (dots and case ignored; `E11.9` never
+  matches `E11.90`). Zero or several matches are refused with the reason shown. It clicks the
+  result instead of calling widget internals, so the widget and the page's bindings update
+  themselves. B-L are revealed/enabled only after the previous box is set, so keys are ordered
+  A..L and the fill waits for each. Verified only against a simulated widget
+  (`src/test/fakeSearchSelect.ts`), not the live one.
+- **`driver: 'pointer'`** fills a procedure row's diagnosis list (`exam.diagnoses: ["A","B"]`, max 4).
+  The page enables the list after the row's code is set and builds it from the diagnoses entered
+  above, so the keys run diagnoses, then code, then pointers, then modifiers, and the fill waits
+  (up to 2 s) for the letters to appear. Each letter is matched to the option it leads (`A - ...`);
+  if the list shows only ICD codes it resolves the letter to the code being filled into that
+  diagnosis box. A letter with no diagnosis behind it, or matching two options, is refused. The
+  real list's format has not been seen; both layouts are tested against simulations only.
+- Not covered yet: extra Procedure/PQRS rows.
+
 ## Components
 
 ### 1. Form Registry (`src/forms/`)

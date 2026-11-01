@@ -1,3 +1,5 @@
+import type { FieldDriver } from '../capture/types';
+
 export interface FormMatch {
   /** Regex source tested against the page URL. Primary signal - most EHR routes are form-specific. */
   urlPattern: string;
@@ -9,12 +11,24 @@ export interface FormMatch {
   domSignature?: string;
 }
 
-/** One field the DB can supply, bound to a page field by its label. */
+/**
+ * One field the DB can supply. Bound to the page either by `selector` (a
+ * stable CSS selector, preferred when the page has stable ids or row hooks) or
+ * by `label`. When both are given, `selector` wins.
+ */
 export interface FieldSpec {
   /** Canonical key. This is the contract with the DB: never derive it from page text. */
   key: string;
   /** Regex source (case-insensitive) tested against the normalized page label. Anchor it (^...$). */
-  label: string;
+  label?: string;
+  /** CSS selector that must match exactly one element. Works for fields capture skips, such as disabled ones. */
+  selector?: string;
+  /** Name shown to the operator in the review list. Defaults to the key. */
+  title?: string;
+  /** How <select> options are matched to the returned value. Defaults to exact value/text. */
+  driver?: FieldDriver;
+  /** Most options a multi-select may hold. */
+  maxSelections?: number;
 }
 
 export interface FormConfig {

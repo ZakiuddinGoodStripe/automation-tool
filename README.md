@@ -21,3 +21,10 @@ npm run dev      # loads the extension in a dev browser with HMR
 npm run build    # production build -> .output/chrome-mv3
 npm run compile  # typecheck only
 ```
+
+## Connecting to the hospital system
+
+In the side panel, open **Settings**: choose **Live**, enter the hospital system's HTTPS URL and
+API key, save (Chrome asks you to allow that one host), then **Test connection**. The request and
+response format is in [docs/API_CONTRACT.md](docs/API_CONTRACT.md). Until their API exists,
+`npm run mock-api` runs a local stand-in (`http://localhost:8787/chartfill`, key `demo-key`).

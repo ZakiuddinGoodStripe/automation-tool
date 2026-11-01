@@ -1,4 +1,4 @@
-import type { CapturedSchema } from './capture/types';
+import type { FieldRequest } from './capture/types';
 import type { SendSchemaResult } from './api/sendSchema';
 
 export interface DetectFormRequest {
@@ -19,8 +19,18 @@ export interface CaptureSchemaRequest {
   type: 'CAPTURE_SCHEMA';
 }
 
+/** Why some configured keys aren't in the request; surfaced so gaps are visible, not silent. */
+export interface CaptureReport {
+  /** Fields discovered on the page before binding. */
+  discovered: number;
+  /** Keys whose label matched nothing on this page. */
+  missing: string[];
+  /** Keys that matched more than one field and were therefore not bound. */
+  ambiguous: string[];
+}
+
 export type CaptureSchemaResponse =
-  | { ok: true; schema: CapturedSchema }
+  | { ok: true; request: FieldRequest; report: CaptureReport }
   | { ok: false; error: string };
 
 export function isCaptureSchemaRequest(message: unknown): message is CaptureSchemaRequest {
@@ -33,7 +43,7 @@ export function isCaptureSchemaRequest(message: unknown): message is CaptureSche
 
 export interface SendSchemaRequest {
   type: 'SEND_SCHEMA';
-  schema: CapturedSchema;
+  request: FieldRequest;
 }
 
 export type SendSchemaResponse =

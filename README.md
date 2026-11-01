@@ -5,8 +5,8 @@ claim, appointment, ...), fetches matching data from a data source, fills the
 form, and leaves a human to review and save. It never submits a form itself.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design: the
-form-registry/config approach, the swappable Data Provider interface (mock
-today, real third-party API later), and the build phases.
+form registry, runtime schema capture, the lean payload sent to the API, the
+swappable `sendSchema()` stub (real third-party API later), and the build phases.
 
 ## Stack
 

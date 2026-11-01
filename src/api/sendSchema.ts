@@ -1,4 +1,4 @@
-import type { CapturedSchema } from '../capture/types';
+import type { FieldRequest } from '../capture/types';
 
 export interface SendSchemaResult {
   /** True once this actually talks to the real API; false for the current stub. */
@@ -14,10 +14,11 @@ export interface SendSchemaResult {
  * content script). Signature is deliberately close to what that call will
  * look like.
  */
-export async function sendSchema(schema: CapturedSchema): Promise<SendSchemaResult> {
+export async function sendSchema(request: FieldRequest): Promise<SendSchemaResult> {
   // TODO: replace with `fetch(apiUrl, { method: 'POST', headers: { Authorization: ... }, body: JSON.stringify(schema) })`
   // once the third-party API is available, and return its parsed response.
-  console.log('[sendSchema] would POST captured schema to the API:', schema);
+  // The request has keys and record ids only; log keys, not context ids.
+  console.log('[sendSchema] would POST request with keys:', request.keys);
   return {
     sentToRealApi: false,
     message: 'API not connected yet - this is a stub. Schema was captured and validated, not sent anywhere.',

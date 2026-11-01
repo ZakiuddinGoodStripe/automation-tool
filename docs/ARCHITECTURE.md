@@ -184,6 +184,27 @@ Three-step flow, matching how an operator actually uses this:
 3. **Send to API** - currently hits the stub; will carry the real request/response
    once the API exists.
 
+### The key contract (request, response, write-back)
+
+The DB never sees the page. It sees fixed keys, and every value it returns is
+joined back to a page field by that key.
+
+- **Keys are defined in the form config** (`FormConfig.fields`: `{ key, label }`),
+  not derived from page text, so a label change can't rename a key.
+- **Capture** discovers fields at runtime, then `bindFields()` binds each key to
+  exactly one field by label. A key that matches nothing (`missing`) or more
+  than one field (`ambiguous`) is not bound and not sent. Nothing is guessed.
+- **Request** (`FieldRequest`): `{ captureId, formType, context, keys[] }`.
+  `context` (e.g. `patientId`) is read from URL params named in the config.
+  No labels, selectors, or current values.
+- **Local map**: the content script keeps `key -> field (selector)` in memory
+  for that capture. Selectors never leave the browser.
+- **Response** (`FieldResponse`): `{ captureId, values: { key: value | null } }`.
+  Absent or null = no data; the field stays blank.
+- **Write-back** (`planWriteBack`): rejects a response whose `captureId` doesn't
+  match; writes only keys that were requested and bound; reports `noData` and
+  `unexpected` keys instead of writing them.
+
 ## Security notes (apply once the real API lands)
 
 - API key entered by each operator/org via an options page (not yet built),

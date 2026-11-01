@@ -9,8 +9,22 @@ export interface FormMatch {
   domSignature?: string;
 }
 
+/** One field the DB can supply, bound to a page field by its label. */
+export interface FieldSpec {
+  /** Canonical key. This is the contract with the DB: never derive it from page text. */
+  key: string;
+  /** Regex source (case-insensitive) tested against the normalized page label. Anchor it (^...$). */
+  label: string;
+}
+
 export interface FormConfig {
-  /** Unique identifier for this form type, e.g. "examForm". Tags the captured schema sent to the API. */
+  /** Unique identifier for this form type, e.g. "examForm". */
   formType: string;
   match: FormMatch;
+  /** CSS selector of the container holding the form; fields outside it are never scanned. */
+  scope?: string;
+  /** The finite set of fields the DB can fill. Only these keys are ever requested or written. */
+  fields: FieldSpec[];
+  /** Request-context key -> URL query parameter it is read from, e.g. { patientId: 'id' }. */
+  context?: Record<string, string>;
 }

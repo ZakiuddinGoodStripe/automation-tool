@@ -11,7 +11,7 @@ function fakeDoc(existingSelectors: string[]): Pick<Document, 'querySelector'> {
 describe('detectForm', () => {
   it('matches on URL pattern alone when domSignature is omitted', () => {
     const configs: FormConfig[] = [
-      { formType: 'examForm', match: { urlPattern: '/Patient/NewExam' } },
+      { formType: 'examForm', match: { urlPattern: '/Patient/NewExam' }, fields: [] },
     ];
     const match = detectForm(
       configs,
@@ -26,6 +26,7 @@ describe('detectForm', () => {
       {
         formType: 'examForm',
         match: { urlPattern: '/Patient/NewExam', domSignature: '#exam-form' },
+        fields: [],
       },
     ];
     const noMatch = detectForm(
@@ -45,7 +46,7 @@ describe('detectForm', () => {
 
   it('returns undefined when no config matches the URL', () => {
     const configs: FormConfig[] = [
-      { formType: 'examForm', match: { urlPattern: '/Patient/NewExam' } },
+      { formType: 'examForm', match: { urlPattern: '/Patient/NewExam' }, fields: [] },
     ];
     const match = detectForm(configs, 'https://pm.eyefinity.com/Patient/Demographics', fakeDoc([]));
     expect(match).toBeUndefined();

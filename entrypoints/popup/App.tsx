@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type {
+  CaptureReport,
   CaptureSchemaResponse,
   DetectFormResponse,
   SendSchemaResponse,
 } from '@/src/messages';
-import type { CapturedSchema } from '@/src/capture/types';
+import type { FieldRequest } from '@/src/capture/types';
 import type { SendSchemaResult } from '@/src/api/sendSchema';
 import './App.css';
 
@@ -21,7 +22,8 @@ async function getActiveTabId(): Promise<number> {
 function App() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [formType, setFormType] = useState<string | null>(null);
-  const [schema, setSchema] = useState<CapturedSchema | null>(null);
+  const [request, setRequest] = useState<FieldRequest | null>(null);
+  const [report, setReport] = useState<CaptureReport | null>(null);
   const [sendResult, setSendResult] = useState<SendSchemaResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +48,8 @@ function App() {
         return;
       }
 
-      setSchema(captureResponse.schema);
+      setRequest(captureResponse.request);
+      setReport(captureResponse.report);
       setSendResult(null);
       setPhase('captured');
     } catch (err) {
@@ -56,13 +59,13 @@ function App() {
   }
 
   async function sendToApi() {
-    if (!schema) return;
+    if (!request) return;
     setPhase('sending');
     setError(null);
     try {
       const response = (await browser.runtime.sendMessage({
         type: 'SEND_SCHEMA',
-        schema,
+        request,
       })) as SendSchemaResponse;
 
       if (!response.ok) {
@@ -84,7 +87,7 @@ function App() {
       <h1>Form Fill Assistant</h1>
 
       <ol className="steps">
-        <li className={schema ? 'done' : phase === 'capturing' ? 'active' : ''}>
+        <li className={request ? 'done' : phase === 'capturing' ? 'active' : ''}>
           1. Capture page structure
         </li>
         <li className={sendResult ? 'done' : phase === 'sending' ? 'active' : ''}>
@@ -97,13 +100,9 @@ function App() {
         {phase === 'capturing' ? 'Capturing…' : 'Capture page structure'}
       </button>
 
-      {schema && (
+      {request && (
         <>
-          <p className="form-type">
-            Form type: <strong>{formType ?? 'unrecognized (not in registry)'}</strong> ·{' '}
-            {schema.fields.length} field(s) found
-          </p>
-          <pre className="schema-preview">{JSON.stringify(schema, null, 2)}</pre>
+          <pre className="schema-preview">{JSON.stringify(request, null, 2)}</pre>
           <button onClick={sendToApi} disabled={phase === 'sending'}>
             {phase === 'sending' ? 'Sending…' : 'Send to API'}
           </button>

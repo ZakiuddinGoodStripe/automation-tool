@@ -11,7 +11,7 @@ export default defineBackground(() => {
 
     (async (): Promise<SendSchemaResponse> => {
       try {
-        const result = await sendSchema(message.schema);
+        const result = await sendSchema(message.request);
         return { ok: true, result };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };

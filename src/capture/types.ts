@@ -25,4 +25,27 @@ export interface CapturedSchema {
   url: string;
   capturedAt: string;
   fields: CapturedField[];
+  /** Candidate fields dropped because no unique selector could be built. Flags capture gaps. */
+  skipped: number;
+}
+
+/**
+ * What goes to the DB/API: identifiers only. No selectors, labels, or
+ * current values. `captureId` ties the response back to this exact capture.
+ */
+export interface FieldRequest {
+  captureId: string;
+  formType: string;
+  /** Identifies the record (e.g. patientId), read from the page URL per the form config. */
+  context: Record<string, string>;
+  /** Canonical field keys (from the form config) the DB should return values for. */
+  keys: string[];
+}
+
+export type FieldValue = string | boolean | string[];
+
+/** What the DB/API must return. A key that is absent or null means "no data": leave the field blank. */
+export interface FieldResponse {
+  captureId: string;
+  values: Record<string, FieldValue | null>;
 }

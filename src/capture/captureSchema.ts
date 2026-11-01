@@ -22,6 +22,20 @@ function isCapturable(el: Element): el is FormElement {
   }
 }
 
+function isFillable(el: FormElement): boolean {
+  const input = el as HTMLInputElement;
+  return !input.disabled && !input.readOnly && input.type !== 'password';
+}
+
+function resolvesUniquely(doc: Document, selector: string, el: Element): boolean {
+  try {
+    const found = doc.querySelectorAll(selector);
+    return found.length === 1 && found[0] === el;
+  } catch {
+    return false;
+  }
+}
+
 function isVisible(el: HTMLElement): boolean {
   return el.offsetParent !== null;
 }
@@ -39,20 +53,34 @@ function elementType(el: FormElement): CapturedElementType {
  * ("give me data shaped like this") instead of relying on hand-written,
  * guessable selectors per form.
  */
-export function captureSchema(doc: Document, formType: string | null): CapturedSchema {
-  const candidates = Array.from(doc.querySelectorAll('input, select, textarea')).filter(
-    (el): el is FormElement => isCapturable(el) && isVisible(el as HTMLElement),
+export function captureSchema(
+  doc: Document,
+  formType: string | null,
+  options: { scope?: string } = {},
+): CapturedSchema {
+  const root: ParentNode = (options.scope && doc.querySelector(options.scope)) || doc;
+  const candidates = Array.from(root.querySelectorAll('input, select, textarea')).filter(
+    (el): el is FormElement =>
+      isCapturable(el) && isVisible(el as HTMLElement) && isFillable(el as FormElement),
   );
 
   const usedKeys = new Set<string>();
+  let skipped = 0;
+  const fields: CapturedField[] = [];
 
-  const fields: CapturedField[] = candidates.map((el) => {
+  for (const el of candidates) {
+    const selector = generateSelector(doc, el);
+    // A selector that doesn't resolve to exactly this element would fill the wrong field later.
+    if (!resolvesUniquely(doc, selector, el)) {
+      skipped += 1;
+      continue;
+    }
     const label = resolveLabel(doc, el);
     const key = uniqueKey(slugify(label), usedKeys);
     const field: CapturedField = {
       key,
       label,
-      selector: generateSelector(doc, el),
+      selector,
       elementType: elementType(el),
       currentValue: (el as HTMLInputElement | HTMLTextAreaElement).value ?? '',
     };
@@ -68,13 +96,14 @@ export function captureSchema(doc: Document, formType: string | null): CapturedS
       field.options = options;
     }
 
-    return field;
-  });
+    fields.push(field);
+  }
 
   return {
     formType,
     url: doc.location?.href ?? '',
     capturedAt: new Date().toISOString(),
     fields,
+    skipped,
   };
 }

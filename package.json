@@ -1,6 +1,6 @@
 {
   "name": "automation-extension",
-  "description": "Browser extension that reads EHR form structures and fills them from a data provider (mock now, real API later).",
+  "description": "Browser extension that reads EHR form structures and fills them from a third-party API (not connected yet).",
   "private": true,
   "version": "0.0.0",
   "type": "module",
